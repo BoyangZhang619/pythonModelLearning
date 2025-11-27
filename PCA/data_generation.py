@@ -65,11 +65,11 @@ df["is_anomaly"] = 0
 df.loc[anom_idx, "is_anomaly"] = 1
 
 # 7) 可选：保存 CSV
-df.to_csv("synthetic_sensor_pca_dataset.csv", index=False)
+df.to_csv("./csv/synthetic_sensor_pca_dataset.csv", index=False)
 
 # 为进阶验证也保存 latent 和 loadings
-pd.DataFrame(F, columns=["f_env", "f_people", "f_machine"]).to_csv("latent_factors.csv", index=False)
-pd.DataFrame(loadings, index=col_names, columns=["L_env", "L_people", "L_machine"]).to_csv("loadings_truth.csv")
+pd.DataFrame(F, columns=["f_env", "f_people", "f_machine"]).to_csv("./csv/latent_factors.csv", index=False)
+pd.DataFrame(loadings, index=col_names, columns=["L_env", "L_people", "L_machine"]).to_csv("./csv/loadings_truth.csv")
 
 print("生成完成：", df.shape)
 print("异常样本数（ground truth）:", n_anoms)

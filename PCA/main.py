@@ -30,7 +30,7 @@ plt.rcParams['axes.unicode_minus'] = False    # 用来正常显示负号
 # 1. 加载与初步浏览
 #---------------------------------------
 print("\n=== 加载数据 ===")
-df = pd.read_csv("synthetic_sensor_pca_dataset.csv")
+df = pd.read_csv("csv/synthetic_sensor_pca_dataset.csv")
 print(df.head())
 print(df.info())
 
@@ -77,7 +77,7 @@ plt.ylabel("累计解释方差")
 plt.title("累计解释方差（Cumulative Explained Variance）")
 plt.grid(alpha=0.3)
 plt.tight_layout()
-plt.savefig("explained_variance.png")
+plt.savefig("./img/explained_variance.png")
 plt.show()
 
 # 自动选择 ≥90% 方差的主成分数
@@ -138,7 +138,7 @@ plt.xlabel("样本索引")
 plt.ylabel("重构误差")
 plt.legend()
 plt.tight_layout()
-plt.savefig("reconstruction_error.png")
+plt.savefig("./img/reconstruction_error.png")
 plt.show()
 
 #---------------------------------------
@@ -150,7 +150,7 @@ plt.xlabel("PC1")
 plt.ylabel("PC2")
 plt.title("PCA 二维投影图（红色为异常）")
 plt.tight_layout()
-plt.savefig("pca_scatter.png")
+plt.savefig("./img/pca_scatter.png")
 plt.show()
 
 #---------------------------------------
