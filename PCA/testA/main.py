@@ -117,13 +117,14 @@ print("\n=== 特征贡献度排序（越高越重要） ===")
 for i, row in contrib_df.iterrows():
     print(f"{row['feature']:12s} 贡献度 = {row['contribution']:.4f}")
 plt.figure(figsize=(8,5))
+print(contrib_df)
 plt.bar(contrib_df["feature"], contrib_df["contribution"])
 plt.xticks(rotation=45, ha="right")
 plt.ylabel("特征贡献度")
 plt.title("基于PCA的特征贡献度")
 plt.tight_layout()
-plt.show()
 plt.savefig(os.path.join(IMG_DIR,"contributionOfFeaturesOfPCA.png"))
+plt.show()
 
 # 重构误差与异常检测
 print("\n=== 重构误差异常检测 ===")
