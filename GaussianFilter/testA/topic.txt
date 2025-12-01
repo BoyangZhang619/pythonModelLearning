@@ -1,0 +1,172 @@
+将25年E题中的数据进行高斯滤波处理，并返回对应的输出图表
+import pandas as pd
+import matplotlib.pyplot as plt
+import numpy as np
+from scipy.ndimage import gaussian_filter
+
+plt.rcParams['font.sans-serif'] = ['SimHei']
+
+# ------------------------------------------------------------------------------------
+# 数据读取
+# ------------------------------------------------------------------------------------
+def load_data(file_path):
+    data = pd.read_excel(file_path)
+    seconds = np.array(data["帧号"] / 30)
+    data = data.iloc[:, 1:]
+    return data, seconds
+
+# ------------------------------------------------------------------------------------
+# 处理中间全零行
+# ------------------------------------------------------------------------------------
+def fix_zero_rows(data):
+    cols = data.columns
+    zero_frac = (data == 0.0).mean(axis=1)
+    zero_indexes = data[zero_frac == 1].index
+
+    for i in zero_indexes:
+        if i == 0:
+            data.loc[i, cols] = data.loc[i + 1, cols] - (data.loc[i + 2, cols] - data.loc[i + 1, cols])
+            continue
+        if i == len(data) - 1:
+            data.loc[i, cols] = data.loc[i - 1, cols] - (data.loc[i - 2, cols] - data.loc[i - 1, cols])
+            continue
+
+        upper = data.loc[i - 1, cols]
+        lower = data.loc[i + 1, cols]
+        data.loc[i, cols] = (upper + lower) / 2
+
+    return data
+
+# ------------------------------------------------------------------------------------
+# 起跳/落地帧计算
+# ------------------------------------------------------------------------------------
+def detect_jump_frames(data, seconds,a=-2,b=-1.0,c=3,d=15):
+    y = data["30_Y"].values
+
+    vy = np.gradient(y)
+    ay = np.gradient(vy)
+
+    VEL_LIFT = -3.04
+    ACC_LIFT = -1.4285
+    MIN_AIR_FRAMES = 4
+
+    # 起跳
+    candidates = np.where((vy < VEL_LIFT) & (ay < ACC_LIFT))[0]
+    jump_start = None
+    for c in candidates:
+        if c + MIN_AIR_FRAMES < len(y):
+            if all(vy[c:c + MIN_AIR_FRAMES] < 0):
+                jump_start = c
+                break
+
+    # 落地
+    jump_end = None
+    if jump_start is not None:
+        baseline = np.mean(y[jump_start - 5:jump_start])
+        threshold = baseline - 3
+
+        for i in range(jump_start + 1, len(y)):
+            if y[i] > threshold:
+                if i + 3 < len(y):
+                    if np.std(y[i:i + 3]) < 1.2:
+                        jump_end = i
+                        break
+    jump_end = jump_end if jump_end is not None else 0
+    jump_start = jump_start if jump_start is not None else 0
+    return {
+        "起跳帧": int(jump_start),
+        "落地帧": int(jump_end),
+        "起跳秒": float(f"{seconds[jump_start]:.3f}"),
+        "落地秒": float(f"{seconds[jump_end]:.3f}")
+    }
+
+# ------------------------------------------------------------------------------------
+# 画折线图
+# ------------------------------------------------------------------------------------
+def showLine(data, points, start, end, message="自定义", isLegend=False):
+    # 需要提取的列：points 中每个点的 x 列、y 列
+    cols = [x for i in points for x in (i * 2, i * 2 + 1)]
+
+    fig, axs = plt.subplots(2, 1, figsize=(15, 12))
+
+    # 为避免覆盖，原始 data 不能动
+    for ax, e in zip(axs, [0, 20]):
+        # 每一轮都重新切片
+        sliced = data.iloc[start - e : end + e, cols]
+
+        data_x = sliced.iloc[:, ::2]
+        data_y = sliced.iloc[:, 1::2]
+
+        if isLegend:
+            data_x.plot(ax=ax, label=[f"{p}_x" for p in points])
+            data_y.plot(ax=ax, label=[f"{p}_y" for p in points])
+            ax.legend()
+        else:
+            ax.plot(data_x.values)
+            ax.plot(data_y.values)
+
+        ax.grid(True, linestyle="--", linewidth=0.5, alpha=0.7)
+        ax.invert_yaxis()
+
+        # 每个子图独立标题
+        ax.set_title(f"{(start-e, end+e)} | {message}")
+        ax.set_xlabel("帧数")
+        ax.set_ylabel("相对距离/高度")
+
+    plt.tight_layout()
+    plt.show()
+
+# ------------------------------------------------------------------------------------
+# 连续骨架图
+# ------------------------------------------------------------------------------------
+origin_point_lines = [
+    [8, 6],[6, 5],[5, 4],[4, 0],[0, 1],[1, 2],[2, 3],[3, 7],[9, 10],[20, 18],
+    [20, 16],[18, 16],[16, 22],[16, 14],[14, 12],[12, 11],[11, 13],[13, 15],
+    [15, 17],[17, 19],[19, 15],[15, 21],[11, 23],[12, 24],[23, 24],[24, 26],
+    [23, 25],[26, 28],[25, 27],[28, 32],[32, 30],[30, 28],[27, 29],[29, 31],
+    [31, 27],[0, 9],[0, 10],[10, 12],[9, 11],[13, 14]
+]
+
+colors = ['blue','green','red','orange','purple','brown','gray','cyan','magenta']
+
+def showContinuousBody(data, frames, alpha=0.75, message=""):
+    data = data.iloc[frames, :]
+    for i, (a, b) in enumerate(origin_point_lines):
+        x1, y1 = data.iloc[:, a * 2], data.iloc[:, a * 2 + 1]
+        x2, y2 = data.iloc[:, b * 2], data.iloc[:, b * 2 + 1]
+        plt.plot([x1, x2], [y1, y2], color=colors[i % len(colors)], alpha=alpha)
+
+    plt.gca().invert_yaxis()
+    plt.axis('equal')
+    plt.title(f"部分帧运动轨迹|{message}")
+    plt.show()
+
+# ------------------------------------------------------------------------------------
+# 主流程：只要一个文件路径
+# ------------------------------------------------------------------------------------
+def process_jump(file_path):
+    data, seconds = load_data(file_path)
+    data = fix_zero_rows(data)
+    data = data.apply(lambda col: gaussian_filter(col, sigma=2))
+    result = detect_jump_frames(data, seconds)
+    showLine(data, [30, 32], start=int(result["起跳帧"] - 20), end=int(result["落地帧"] + 20), message=file_path, isLegend=True)
+    showContinuousBody(data, [f for f in range(result["起跳帧"], result["落地帧"] + 1)], 0.75, file_path)
+    return data,result
+
+if __name__ == "__main__":
+    jumpers_data = []
+    jumpers_frames = []
+    for addr in ["../附件3/姿势调整后/运动者8调整后第1次的跳远位置信息.xlsx"]:
+        cnt = process_jump(addr)
+        print(cnt[1])
+        jumpers_data.append(cnt[0])
+        jumpers_frames.append(cnt[1])
+    for frame,data,msg in zip(jumpers_frames,jumpers_data,["运动者8调整后第1次的跳跃过程轨迹图"]):
+        frame = list(frame.values())
+        print(frame)
+        # 画的图在预测的起跳和落地各往外扩20帧
+        showLine(data, [30, 32], start=int(frame[0]-20), end=int(frame[1]+20), message="运动者8双脚节点",isLegend=True)
+        showContinuousBody(data,[f for f in range(frame[0],frame[1]+1)],0.75,msg)
+        # showLine(data, [30, 32], start=int(0), end=int(300), message="运动者8双脚节点",isLegend=True)
+        # showContinuousBody(data,[f for f in range(0,300)],0.75,msg)
+    print(jumpers_data[0].shape)
