@@ -1,0 +1,33 @@
+对于ExponentialDistribution的各个方法的实例与对应作图
+
+
+指数分布只有一个形状：它是 无形状分布，只靠 scale（尺度参数，也就是 1/λ）来控制。默认 loc=0、scale=1。
+
+关键属性与方法如下：
+
+loc、scale
+它们是 scipy 里所有连续分布共用的“坐标系位移器”。
+loc 让分布平移，scale 拉伸分布宽度。对于指数分布，这几乎就是全部调味料。
+
+mean、var、std、median
+指数分布的这些属性非常规整：
+mean = scale
+var = scale²
+median = scale * ln(2)
+std = scale
+这类属性可以通过 .stats() 拿，也可以通过 .mean()、.var() 等等拿。
+
+pdf(x)
+概率密度函数。指数分布的密度永远是向下单调的那条优美小曲线：f(x) = exp(-x/scale) / scale。
+
+cdf(x)
+累积分布函数。它描述随机事件在时间 x 前发生的概率：F(x) = 1 − exp(−x/scale)。
+
+ppf(q)
+分位数函数（CDF 的反函数）。比如想知道“在 90% 的概率下事件会多久发生”，ppf 就会告诉你。
+
+rvs(size)
+用来采样生成随机数据，是模拟实验的主力。
+
+sf(x)
+生存函数（survival function）。就是 1 − CDF，用来告诉你“事件到 x 还没发生的概率”。
