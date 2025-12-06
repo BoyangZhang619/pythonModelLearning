@@ -64,7 +64,7 @@ plt.savefig(os.path.join(IMG_DIR, "hist_intervals.png"))
 plt.show()
 
 # ============================================================
-# 图表 2：PDF 曲线
+# 图表 2：PDF(probability density function) 曲线
 # ============================================================
 plt.figure(figsize=(10, 4))
 plt.plot(x, pdf_vals)
@@ -76,7 +76,7 @@ plt.savefig(os.path.join(IMG_DIR, "pdf.png"))
 plt.show()
 
 # ============================================================
-# 图表 3：CDF 曲线
+# 图表 3：CDF(cumulative distribution function) 曲线
 # ============================================================
 plt.figure(figsize=(10, 4))
 plt.plot(x, cdf_vals)
@@ -88,7 +88,7 @@ plt.savefig(os.path.join(IMG_DIR, "cdf.png"))
 plt.show()
 
 # ============================================================
-# 图表 4：SF 生存函数
+# 图表 4：SF(survival function) 生存函数
 # ============================================================
 plt.figure(figsize=(10, 4))
 plt.plot(x, sf_vals)
@@ -100,7 +100,7 @@ plt.savefig(os.path.join(IMG_DIR, "sf.png"))
 plt.show()
 
 # ============================================================
-# 图表 5：PPF（分位数函数）
+# 图表 5：PPF(percent point function)（分位数函数）
 # ============================================================
 plt.figure(figsize=(10, 4))
 plt.plot(np.linspace(0, 1, 500), ppf_vals)

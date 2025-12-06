@@ -14,7 +14,7 @@ if not os.path.exists(IMG_DIR):
 data  = np.array([42, 57, 38, 63, 51, 46, 70])
 
 mtbf = np.mean(data)
-print("MTBF: ", mtbf)
+print("MTBF(mean time between failures): ", mtbf)
 
 lambda_ = 1 / mtbf
 print("lambda: ", lambda_)
