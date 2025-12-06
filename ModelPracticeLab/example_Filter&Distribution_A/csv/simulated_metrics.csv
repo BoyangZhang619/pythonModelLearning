@@ -1,0 +1,5 @@
+metric,value
+RMSE_lambda,0.7794151489389508
+MAE_lambda,0.6206277248623255
+MLE_rate_from_interarrival,5.376041169353446
+total_events,1564.0

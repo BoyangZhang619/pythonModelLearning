@@ -1,0 +1,2 @@
+使用：Poisson, Exponential, Gaussian, Kalman
+模拟道路检测器每分钟记录的车辆到达：真实到达率 λ_t 随时间慢变；每分钟到达数 ~ Poisson(λ_t)；到达间隔服从 Exponential（检验 Poisson 假设）；同时观测到的平均车速含高斯噪声，用 Gaussian filter 平滑；用 （近似）Kalman filter 实时估计隐含到达率 λ_t（把 Poisson 观测近似为均值为 λ 方差为 λ 的高斯观测来做增量更新）。
